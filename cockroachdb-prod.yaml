@@ -1,0 +1,59 @@
+version: '3.8'
+services:
+  roach-1:
+    image: cockroachdb/cockroach:latest
+    command: start --logtostderr --insecure --join=roach-1,roach-2,roach-3
+    volumes:
+      - roach-1-data:/cockroach/cockroach-data
+    networks:
+      - secure-net
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+        reservations:
+          memory: 2G
+
+  roach-2:
+    image: cockroachdb/cockroach:latest
+    command: start --logtostderr --insecure --join=roach-1,roach-2,roach-3
+    volumes:
+      - roach-2-data:/cockroach/cockroach-data
+    networks:
+      - secure-net
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+
+  roach-3:
+    image: cockroachdb/cockroach:latest
+    command: start --logtostderr --insecure --join=roach-1,roach-2,roach-3
+    volumes:
+      - roach-3-data:/cockroach/cockroach-data
+    networks:
+      - secure-net
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+
+  # Load balancer for CockroachDB
+  haproxy:
+    image: haproxy:latest
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    ports:
+      - "26257:26257"
+      - "8080:8080"
+    networks:
+      - secure-net
+
+volumes:
+  roach-1-data:
+  roach-2-data:
+  roach-3-data:
+
+networks:
+  secure-net:
+    driver: bridge
